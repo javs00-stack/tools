@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Word Scramble Game - Unscramble jumbled words before time runs out! Test your vocabulary and typing speed in this fun challenge.">
+    <meta name="keywords" content="word scramble, word game, typing challenge, vocabulary game, puzzle game">
+    <title>Word Scramble | Unscramble & Type Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --correct: #00b894;
+            --wrong: #d63031;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            --font-main: 'Poppins', sans-serif;
+            --font-display: 'Fredoka One', cursive;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-gradient);
+            color: var(--dark);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem;
+            color: white;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .ad-banner {
+            margin: 1rem auto;
+            max-width: 728px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .game-container {
+            max-width: 800px;
+            margin: 1rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat-box {
+            padding: 0.8rem 1rem;
+            background: white;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-box span {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-box p {
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .game-area {
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
+        .scrambled-word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin: 1rem 0;
+            font-family: var(--font-display);
+        }
+
+        .hint-area {
+            margin: 1rem 0;
+            font-style: italic;
+            color: #666;
+        }
+
+        .word-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            margin: 1rem 0;
+            transition: all 0.3s;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .word-timer {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.1s linear;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .ad-sidebar {
+            min-width: 300px;
+            min-height: 250px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .word-input.correct {
+            animation: pulse 0.3s;
+            border-color: var(--correct);
+        }
+
+        .word-input.wrong {
+            animation: shake 0.4s;
+            border-color: var(--wrong);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-info {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .ad-sidebar {
+                margin: 1rem auto;
+            }
+
+            .scrambled-word {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .scrambled-word {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        <div class="ad-banner">
+            <!-- AdSense Header Ad -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+        <h1>WORD SCRAMBLE</h1>
+        <p>Unscramble the words before time runs out!</p>
+    </header>
+
+    <main>
+        <div class="game-container">
+            <div class="game-info">
+                <div class="stats">
+                    <div class="stat-box">
+                        <span id="score">0</span>
+                        <p>Score</p>
+                    </div>
+                    <div class="stat-box">
+                        <span id="level">1</span>
+                        <p>Level</p>
+                    </div>
+                    <div class="stat-box">
+                        <span id="time-left">30</span>
+                        <p>Time</p>
+                    </div>
+                </div>
+                <div class="ad-sidebar">
+                    <!-- AdSense Sidebar Ad -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="XXXXXXXXXX"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <div id="scrambled-word" class="scrambled-word"></div>
+                <div id="hint-area" class="hint-area"></div>
+                <input type="text" id="word-input" class="word-input" placeholder="Type the correct word..." autocomplete="off">
+                <div class="progress-container">
+                    <div id="word-timer" class="word-timer"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="hint-btn" class="btn btn-secondary">Hint</button>
+                <button id="next-btn" class="btn btn-primary">Next Word</button>
+            </div>
+        </div>
+
+        <div class="ad-banner">
+            <!-- AdSense Footer Ad -->
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2023 Word Scramble | Improve your vocabulary and typing speed!</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const scrambledWordEl = document.getElementById('scrambled-word');
+            const wordInput = document.getElementById('word-input');
+            const hintArea = document.getElementById('hint-area');
+            const hintBtn = document.getElementById('hint-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const scoreEl = document.getElementById('score');
+            const levelEl = document.getElementById('level');
+            const timeLeftEl = document.getElementById('time-left');
+            const wordTimer = document.getElementById('word-timer');
+
+            // Game Variables
+            let score = 0;
+            let level = 1;
+            let timeLeft = 30;
+            let currentWord = '';
+            let scrambledWord = '';
+            let wordTimeLeft = 0;
+            let totalWordTime = 5000; // 5 seconds per word initially
+            let gameTimer;
+            let wordTimerInterval;
+            let usedWords = [];
+
+            // Word banks by difficulty
+            const wordBanks = {
+                1: ["apple", "house", "happy", "music", "green", "table", "water", "light", "watch", "phone"],
+                2: ["elephant", "mountain", "computer", "keyboard", "adventure", "sunshine", "chocolate", "birthday", "calendar", "beautiful"],
+                3: ["extravaganza", "quintessential", "photosynthesis", "extraordinary", "inconceivable", "serendipity", "kaleidoscope", "perseverance", "unbelievable", "magnificent"]
+            };
+
+            // Initialize the game
+            function init() {
+                updateScore();
+                loadNewWord();
+                startGameTimer();
+            }
+
+            // Load a new scrambled word
+            function loadNewWord() {
+                clearInterval(wordTimerInterval);
+                
+                // Get a random word from the current level
+                const wordBank = wordBanks[Math.min(level, 3)];
+                let randomWord;
+                
+                do {
+                    randomWord = wordBank[Math.floor(Math.random() * wordBank.length)];
+                } while (usedWords.includes(randomWord) && usedWords.length < wordBank.length);
+                
+                usedWords.push(randomWord);
+                currentWord = randomWord;
+                scrambledWord = scrambleWord(randomWord);
+                
+                scrambledWordEl.textContent = scrambledWord;
+                hintArea.textContent = `Hint: The word has ${randomWord.length} letters`;
+                
+                // Reset word timer
+                wordTimeLeft = totalWordTime;
+                wordTimer.style.width = '100%';
+                
+                wordTimerInterval = setInterval(() => {
+                    wordTimeLeft -= 10;
+                    const percentage = (wordTimeLeft / totalWordTime) * 100;
+                    wordTimer.style.width = `${percentage}%`;
+                    
+                    if (wordTimeLeft <= 0) {
+                        clearInterval(wordTimerInterval);
+                        handleTimeOut();
+                    }
+                }, 10);
+                
+                wordInput.value = '';
+                wordInput.focus();
+            }
+
+            // Scramble a word
+            function scrambleWord(word) {
+                const letters = word.split('');
+                for (let i = letters.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [letters[i], letters[j]] = [letters[j], letters[i]];
+                }
+                return letters.join('');
+            }
+
+            // Start the game timer
+            function startGameTimer() {
+                clearInterval(gameTimer);
+                gameTimer = setInterval(() => {
+                    timeLeft--;
+                    timeLeftEl.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+
+            // Handle correct answer
+            function handleCorrect() {
+                wordInput.classList.add('correct');
+                setTimeout(() => wordInput.classList.remove('correct'), 300);
+                
+                // Calculate score (base + time bonus)
+                const timeBonus = Math.floor((wordTimeLeft / totalWordTime) * 50);
+                score += 10 + timeBonus;
+                updateScore();
+                
+                // Check for level up
+                if (score >= level * 100) {
+                    level++;
+                    levelEl.textContent = level;
+                    totalWordTime = Math.max(2000, 5000 - (level * 500)); // Decrease time per level
+                    timeLeft += 10; // Add extra time on level up
+                }
+                
+                loadNewWord();
+            }
+
+            // Handle time out for a word
+            function handleTimeOut() {
+                wordInput.classList.add('wrong');
+                setTimeout(() => wordInput.classList.remove('wrong'), 300);
+                score = Math.max(0, score - 5);
+                updateScore();
+                loadNewWord();
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreEl.textContent = score;
+            }
+
+            // End the game
+            function endGame() {
+                clearInterval(gameTimer);
+                clearInterval(wordTimerInterval);
+                scrambledWordEl.textContent = "Game Over!";
+                wordInput.disabled = true;
+                hintBtn.disabled = true;
+                nextBtn.disabled = true;
+            }
+
+            // Event Listeners
+            wordInput.addEventListener('input', () => {
+                if (wordInput.value.toLowerCase() === currentWord) {
+                    handleCorrect();
+                }
+            });
+
+            hintBtn.addEventListener('click', () => {
+                const hint = currentWord.split('').map((letter, index) => 
+                    index < 2 ? letter : '_'
+                ).join(' ');
+                hintArea.textContent = `Hint: ${hint}`;
+                score = Math.max(0, score - 3);
+                updateScore();
+            });
+
+            nextBtn.addEventListener('click', loadNewWord);
+
+            // Initialize the game
+            init();
+        });
+    </script>
+</body>
+</html>
