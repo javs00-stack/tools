@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Improve your typing speed with real-time WPM tracking and progress analytics">
+    <meta name="keywords" content="typing test, WPM calculator, typing speed, typing practice">
+    <meta name="author" content="Typing Pro">
+    <title>Typing Speed Tracker | Real-time WPM Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"></script>
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --accent: #00BFA6;
+            --light: #F9F9FF;
+            --dark: #2E2E3A;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #FF5252;
+            --text-light: #7A7A8C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: var(--primary);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: 0 auto 25px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .typing-test-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-box {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .text-display {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        .current-word {
+            background-color: var(--primary);
+            color: white;
+            padding: 0 3px;
+            border-radius: 3px;
+        }
+
+        .correct {
+            color: var(--success);
+        }
+
+        .incorrect {
+            color: var(--danger);
+            text-decoration: underline;
+        }
+
+        #typing-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        #typing-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #5a52e0;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .chart-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .ad-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                margin-top: 15px;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-container {
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">Typing<span>Pro</span>Master</div>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#practice">Practice</a></li>
+                    <li><a href="#progress">Progress</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Improve Your Typing Speed</h1>
+            <p>Track your words per minute (WPM) in real-time and monitor your progress over time with our interactive typing test.</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="typing-test-container fade-in">
+                <h2>Typing Test</h2>
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <div class="stat-value" id="wpm">0</div>
+                        <div class="stat-label">WPM</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="accuracy">100%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="time">0s</div>
+                        <div class="stat-label">Time</div>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+                
+                <div class="text-display" id="text-display"></div>
+                
+                <input type="text" id="typing-input" placeholder="Start typing here..." autocomplete="off">
+                
+                <button id="reset-btn">Reset Test</button>
+            </div>
+            
+            <div class="sidebar">
+                <div class="chart-container fade-in">
+                    <h2>Your Progress</h2>
+                    <canvas id="progress-chart"></canvas>
+                </div>
+                
+                <div class="ad-container">
+                    <!-- Google AdSense -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="1234567890"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+                
+                <div class="ad-container">
+                    <!-- Google AdSense -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="0987654321"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Typing Pro Master. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample texts for typing test
+        const sampleTexts = [
+            "The quick brown fox jumps over the lazy dog. This classic pangram contains all the letters in the English alphabet.",
+            "Typing is an essential skill in today's digital world. Whether you're writing emails, coding, or creating documents, being able to type quickly and accurately saves time.",
+            "Professional typists can reach speeds of 65 to 75 WPM, while some can exceed 100 WPM. Consistent practice is key to developing this valuable skill."
+        ];
+        
+        // DOM elements
+        const textDisplay = document.getElementById('text-display');
+        const typingInput = document.getElementById('typing-input');
+        const resetBtn = document.getElementById('reset-btn');
+        const wpmDisplay = document.getElementById('wpm');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const timeDisplay = document.getElementById('time');
+        const progressBar = document.getElementById('progress-bar');
+        const progressChart = document.getElementById('progress-chart');
+        
+        // Test variables
+        let currentText = '';
+        let testStarted = false;
+        let startTime = 0;
+        let timer = null;
+        let typedChars = [];
+        let correctChars = 0;
+        let testHistory = [];
+        
+        // Initialize the typing test
+        function initTest() {
+            // Select a random sample text
+            currentText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+            
+            // Reset variables
+            testStarted = false;
+            typedChars = [];
+            correctChars = 0;
+            
+            // Reset displays
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            timeDisplay.textContent = '0s';
+            progressBar.style.width = '0%';
+            typingInput.value = '';
+            typingInput.disabled = false;
+            
+            // Display the text with highlighting
+            displayText();
+            
+            // Focus the input field
+            typingInput.focus();
+        }
+        
+        // Display the text with proper highlighting
+        function displayText() {
+            let html = '';
+            for (let i = 0; i < currentText.length; i++) {
+                let charClass = '';
+                
+                if (i < typedChars.length) {
+                    charClass = typedChars[i] === currentText[i] ? 'correct' : 'incorrect';
+                } else if (i === typedChars.length) {
+                    charClass = 'current-word';
+                }
+                
+                html += `<span class="${charClass}">${currentText[i]}</span>`;
+            }
+            
+            textDisplay.innerHTML = html;
+        }
+        
+        // Calculate WPM (words per minute)
+        function calculateWPM(correctChars, timeInSeconds) {
+            // 5 characters = 1 word
+            const words = correctChars / 5;
+            const minutes = timeInSeconds / 60;
+            return Math.round(words / minutes) || 0;
+        }
+        
+        // Calculate accuracy percentage
+        function calculateAccuracy() {
+            if (typedChars.length === 0) return 100;
+            return Math.round((correctChars / typedChars.length) * 100);
+        }
+        
+        // Update the progress chart
+        function updateProgressChart() {
+            const ctx = progressChart.getContext('2d');
+            
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+            
+            if (testHistory.length === 0) {
+                progressChart.style.display = 'none';
+                document.querySelector('.chart-container').innerHTML += `
+                    <p style="text-align: center; color: var(--text-light); margin-top: 20px;">
+                        Complete a typing test to see your progress
+                    </p>
+                `;
+                return;
+            }
+            
+            progressChart.style.display = 'block';
+            
+            const labels = testHistory.map((_, i) => `Test ${i + 1}`);
+            const wpmData = testHistory.map(test => test.wpm);
+            const accuracyData = testHistory.map(test => test.accuracy);
+            
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'WPM',
+                            data: wpmData,
+                            borderColor: '#6C63FF',
+                            backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Accuracy %',
+                            data: accuracyData,
+                            borderColor: '#00BFA6',
+                            backgroundColor: 'rgba(0, 191, 166, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'WPM / Accuracy'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Event listeners
+        typingInput.addEventListener('input', (e) => {
+            if (!testStarted) {
+                testStarted = true;
+                startTime = Date.now();
+                timer = setInterval(updateStats, 1000);
+            }
+            
+            const inputText = e.target.value;
+            typedChars = inputText.split('');
+            
+            // Count correct characters
+            correctChars = 0;
+            for (let i = 0; i < typedChars.length; i++) {
+                if (typedChars[i] === currentText[i]) {
+                    correctChars++;
+                }
+            }
+            
+            // Update display
+            displayText();
+            
+            // Check if test is complete
+            if (typedChars.length === currentText.length) {
+                completeTest();
+            }
+        });
+        
+        function updateStats() {
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            const currentWPM = calculateWPM(correctChars, currentTime);
+            const currentAccuracy = calculateAccuracy();
+            
+            wpmDisplay.textContent = currentWPM;
+            accuracyDisplay.textContent = `${currentAccuracy}%`;
+            timeDisplay.textContent = `${currentTime}s`;
+            
+            // Update progress bar (max WPM we'll show is 100)
+            progressBar.style.width = `${Math.min(currentWPM, 100)}%`;
+        }
+        
+        function completeTest() {
+            clearInterval(timer);
+            typingInput.disabled = true;
+            
+            const finalTime = Math.floor((Date.now() - startTime) / 1000);
+            const finalWPM = calculateWPM(correctChars, finalTime);
+            const finalAccuracy = calculateAccuracy();
+            
+            // Save test results to history
+            testHistory.push({
+                wpm: finalWPM,
+                accuracy: finalAccuracy,
+                time: finalTime,
+                date: new Date().toLocaleString()
+            });
+            
+            // Update the chart
+            updateProgressChart();
+            
+            // Show completion message
+            textDisplay.innerHTML += `<div style="margin-top: 15px; color: var(--success);">Test completed! Your speed: ${finalWPM} WPM with ${finalAccuracy}% accuracy</div>`;
+        }
+        
+        resetBtn.addEventListener('click', initTest);
+        
+        // Initialize the test when page loads
+        initTest();
+        updateProgressChart();
+        
+        // Service worker registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful');
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
