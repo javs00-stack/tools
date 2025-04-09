@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Improve your typing accuracy with detailed analysis of your weak spots and error patterns">
+    <meta name="keywords" content="typing accuracy, typing analysis, keyboard skills, typing practice">
+    <meta name="author" content="Typing Pro">
+    <title>Typing Accuracy Analyzer | Identify & Improve Weak Spots</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heatmap.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"></script>
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --accent: #00BFA6;
+            --light: #F9F9FF;
+            --dark: #2E2E3A;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --danger: #FF5252;
+            --text-light: #7A7A8C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: var(--primary);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: 0 auto 25px;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .typing-test-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-box {
+            text-align: center;
+            min-width: 100px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .accuracy-display {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .accuracy-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--danger), var(--warning), var(--success));
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .accuracy-indicator {
+            position: absolute;
+            top: -5px;
+            width: 2px;
+            height: 20px;
+            background-color: var(--dark);
+            transform: translateX(-50%);
+        }
+
+        .text-display {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        .current-word {
+            background-color: var(--primary);
+            color: white;
+            padding: 0 3px;
+            border-radius: 3px;
+        }
+
+        .correct {
+            color: var(--success);
+        }
+
+        .incorrect {
+            color: var(--danger);
+            text-decoration: underline;
+        }
+
+        #typing-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        #typing-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #5a52e0;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .analysis-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .error-breakdown {
+            margin-top: 20px;
+        }
+
+        .error-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .error-key {
+            font-weight: bold;
+        }
+
+        .error-count {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .heatmap-container {
+            height: 300px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .keyboard-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .ad-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                margin-top: 15px;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-container {
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">Typing<span>Pro</span>Master</div>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#practice">Practice</a></li>
+                    <li><a href="#progress">Progress</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Master Typing Accuracy</h1>
+            <p>Identify your weak spots with detailed accuracy analysis and improve your typing precision</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="typing-test-container fade-in">
+                <h2>Accuracy Analysis Test</h2>
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <div class="stat-value" id="accuracy-value">100%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="error-count">0</div>
+                        <div class="stat-label">Errors</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="error-rate">0%</div>
+                        <div class="stat-label">Error Rate</div>
+                    </div>
+                </div>
+                
+                <div class="accuracy-display">
+                    <div class="accuracy-bar" id="accuracy-bar"></div>
+                    <div class="accuracy-indicator" id="accuracy-indicator" style="left: 100%"></div>
+                </div>
+                
+                <div class="text-display" id="text-display"></div>
+                
+                <input type="text" id="typing-input" placeholder="Start typing here..." autocomplete="off">
+                
+                <button id="reset-btn">Reset Test</button>
+            </div>
+            
+            <div class="sidebar">
+                <div class="analysis-container fade-in">
+                    <h2>Error Analysis</h2>
+                    <div class="error-breakdown" id="error-breakdown">
+                        <p>Complete a test to see your error breakdown</p>
+                    </div>
+                    
+                    <div class="heatmap-container" id="heatmap-container">
+                        <div id="heatmap" style="width: 100%; height: 100%;"></div>
+                        <div class="keyboard-overlay"></div>
+                    </div>
+                </div>
+                
+                <div class="ad-container">
+                    <!-- Google AdSense -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="1234567890"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+                
+                <div class="ad-container">
+                    <!-- Google AdSense -->
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                         data-ad-slot="0987654321"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Typing Pro Master. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample texts for typing test
+        const sampleTexts = [
+            "The quick brown fox jumps over the lazy dog. This classic pangram contains all letters in the English alphabet.",
+            "Typing accuracy is crucial for efficient computer use. Focus on hitting the right keys without looking at your keyboard.",
+            "Professional typists maintain accuracy above 98%. Practice regularly to identify and eliminate your common mistakes."
+        ];
+        
+        // DOM elements
+        const textDisplay = document.getElementById('text-display');
+        const typingInput = document.getElementById('typing-input');
+        const resetBtn = document.getElementById('reset-btn');
+        const accuracyValue = document.getElementById('accuracy-value');
+        const errorCount = document.getElementById('error-count');
+        const errorRate = document.getElementById('error-rate');
+        const accuracyBar = document.getElementById('accuracy-bar');
+        const accuracyIndicator = document.getElementById('accuracy-indicator');
+        const errorBreakdown = document.getElementById('error-breakdown');
+        const heatmapContainer = document.getElementById('heatmap-container');
+        
+        // Test variables
+        let currentText = '';
+        let testStarted = false;
+        let typedChars = [];
+        let correctChars = 0;
+        let totalChars = 0;
+        let errorMap = {};
+        let keyPressData = {};
+        let heatmapInstance = null;
+        
+        // Keyboard layout for heatmap
+        const keyboardLayout = [
+            ['1','2','3','4','5','6','7','8','9','0','-','='],
+            ['q','w','e','r','t','y','u','i','o','p','[',']','\\'],
+            ['a','s','d','f','g','h','j','k','l',';','\''],
+            ['z','x','c','v','b','n','m',',','.','/'],
+            [' ']
+        ];
+        
+        // Initialize the typing test
+        function initTest() {
+            // Select a random sample text
+            currentText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+            
+            // Reset variables
+            testStarted = false;
+            typedChars = [];
+            correctChars = 0;
+            totalChars = 0;
+            errorMap = {};
+            keyPressData = {};
+            
+            // Reset displays
+            accuracyValue.textContent = '100%';
+            errorCount.textContent = '0';
+            errorRate.textContent = '0%';
+            accuracyBar.style.width = '100%';
+            accuracyIndicator.style.left = '100%';
+            typingInput.value = '';
+            typingInput.disabled = false;
+            
+            // Reset error breakdown
+            errorBreakdown.innerHTML = '<p>Complete a test to see your error breakdown</p>';
+            
+            // Initialize heatmap
+            initHeatmap();
+            
+            // Display the text with highlighting
+            displayText();
+            
+            // Focus the input field
+            typingInput.focus();
+        }
+        
+        // Initialize the heatmap
+        function initHeatmap() {
+            if (heatmapInstance) {
+                heatmapInstance._data = [];
+                heatmapInstance.repaint();
+                return;
+            }
+            
+            const config = {
+                container: document.getElementById('heatmap'),
+                radius: 30,
+                maxOpacity: 0.8,
+                minOpacity: 0,
+                blur: 0.9,
+                gradient: {
+                    '0.1': '#ff0000',
+                    '0.5': '#ffff00',
+                    '0.9': '#00ff00'
+                }
+            };
+            
+            heatmapInstance = h337.create(config);
+            
+            // Add keyboard layout to heatmap
+            const width = heatmapContainer.offsetWidth;
+            const height = heatmapContainer.offsetHeight;
+            const keyWidth = width / 12;
+            const keyHeight = height / 5;
+            
+            keyboardLayout.forEach((row, rowIndex) => {
+                row.forEach((key, keyIndex) => {
+                    const x = (keyIndex * keyWidth) + (keyWidth / 2);
+                    const y = (rowIndex * keyHeight) + (keyHeight / 2);
+                    
+                    // Initialize with 0 errors
+                    keyPressData[key] = {
+                        x: x,
+                        y: y,
+                        count: 0
+                    };
+                    
+                    // Add a neutral point to show the keyboard
+                    heatmapInstance.addData({
+                        x: x,
+                        y: y,
+                        value: 5,
+                        radius: keyWidth * 0.8
+                    });
+                });
+            });
+        }
+        
+        // Update the heatmap with error data
+        function updateHeatmap() {
+            if (!heatmapInstance) return;
+            
+            heatmapInstance._data = [];
+            
+            Object.keys(keyPressData).forEach(key => {
+                const keyData = keyPressData[key];
+                if (keyData.count > 0) {
+                    heatmapInstance.addData({
+                        x: keyData.x,
+                        y: keyData.y,
+                        value: Math.min(keyData.count * 10, 100),
+                        radius: 30
+                    });
+                }
+            });
+            
+            heatmapInstance.repaint();
+        }
+        
+        // Display the text with proper highlighting
+        function displayText() {
+            let html = '';
+            for (let i = 0; i < currentText.length; i++) {
+                let charClass = '';
+                
+                if (i < typedChars.length) {
+                    charClass = typedChars[i] === currentText[i] ? 'correct' : 'incorrect';
+                } else if (i === typedChars.length) {
+                    charClass = 'current-word';
+                }
+                
+                html += `<span class="${charClass}">${currentText[i]}</span>`;
+            }
+            
+            textDisplay.innerHTML = html;
+        }
+        
+        // Calculate accuracy percentage
+        function calculateAccuracy() {
+            if (typedChars.length === 0) return 100;
+            return Math.round((correctChars / typedChars.length) * 100);
+        }
+        
+        // Update error breakdown display
+        function updateErrorBreakdown() {
+            if (Object.keys(errorMap).length === 0) {
+                errorBreakdown.innerHTML = '<p>No errors detected! Perfect typing!</p>';
+                return;
+            }
+            
+            let html = '';
+            const sortedErrors = Object.entries(errorMap).sort((a, b) => b[1] - a[1]);
+            
+            sortedErrors.forEach(([key, count]) => {
+                html += `
+                    <div class="error-item">
+                        <span class="error-key">${key === ' ' ? 'Space' : key}</span>
+                        <span class="error-count">${count} error${count > 1 ? 's' : ''}</span>
+                    </div>
+                `;
+            });
+            
+            errorBreakdown.innerHTML = html;
+        }
+        
+        // Event listeners
+        typingInput.addEventListener('input', (e) => {
+            if (!testStarted) {
+                testStarted = true;
+            }
+            
+            const inputText = e.target.value;
+            typedChars = inputText.split('');
+            totalChars = typedChars.length;
+            
+            // Count correct characters and track errors
+            correctChars = 0;
+            for (let i = 0; i < typedChars.length; i++) {
+                if (typedChars[i] === currentText[i]) {
+                    correctChars++;
+                } else {
+                    // Track errors in errorMap
+                    const expectedChar = currentText[i];
+                    const typedChar = typedChars[i];
+                    const errorKey = `${expectedChar}→${typedChar}`;
+                    
+                    errorMap[errorKey] = (errorMap[errorKey] || 0) + 1;
+                    
+                    // Track key press data for heatmap
+                    const key = expectedChar.toLowerCase();
+                    if (keyPressData[key]) {
+                        keyPressData[key].count++;
+                    }
+                }
+            }
+            
+            // Update displays
+            const currentAccuracy = calculateAccuracy();
+            const currentErrorCount = totalChars - correctChars;
+            const currentErrorRate = Math.round((currentErrorCount / totalChars) * 100);
+            
+            accuracyValue.textContent = `${currentAccuracy}%`;
+            errorCount.textContent = currentErrorCount;
+            errorRate.textContent = `${currentErrorRate}%`;
+            
+            // Update accuracy bar and indicator
+            accuracyBar.style.width = `${currentAccuracy}%`;
+            accuracyIndicator.style.left = `${currentAccuracy}%`;
+            
+            // Update error breakdown
+            updateErrorBreakdown();
+            
+            // Update heatmap
+            updateHeatmap();
+            
+            // Display the text with highlighting
+            displayText();
+            
+            // Check if test is complete
+            if (typedChars.length === currentText.length) {
+                typingInput.disabled = true;
+                textDisplay.innerHTML += `<div style="margin-top: 15px; color: var(--success);">Test completed! Final accuracy: ${currentAccuracy}%</div>`;
+            }
+        });
+        
+        resetBtn.addEventListener('click', initTest);
+        
+        // Initialize the test when page loads
+        initTest();
+        
+        // Service worker registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful');
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
