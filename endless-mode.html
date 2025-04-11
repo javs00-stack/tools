@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Word Typing Challenge</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --error: #f72585;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --font-main: 'Inter', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+        }
+        
+        header {
+            text-align: center;
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-area {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat {
+            background: #f1f3f5;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            min-height: 120px;
+            align-items: center;
+        }
+        
+        .word {
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .word.current {
+            background: rgba(67, 97, 238, 0.1);
+            position: relative;
+        }
+        
+        .word.current::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0.3; }
+        }
+        
+        .word.correct {
+            color: var(--success);
+        }
+        
+        .word.incorrect {
+            color: var(--error);
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        #word-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        #word-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background: #e9ecef;
+            color: var(--dark);
+        }
+        
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+        
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .result-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-stat {
+            background: #f1f3f5;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .modal-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .modal-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .modal-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Endless Word Challenge</h1>
+            <p>Type each word correctly to continue. One mistake ends the game!</p>
+        </header>
+        
+        <div class="game-area">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="score">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="streak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="words">0</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="time">0s</div>
+                    <div class="stat-label">Time</div>
+                </div>
+            </div>
+            
+            <div class="words-container" id="words-container"></div>
+            
+            <div class="input-container">
+                <input type="text" id="word-input" placeholder="Type the highlighted word..." disabled>
+                <div class="controls">
+                    <button class="btn btn-primary" id="start-btn">Start Game</button>
+                    <button class="btn btn-secondary" id="reset-btn" disabled>Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="result-modal" id="result-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Game Over!</h2>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <div class="modal-value" id="final-score">0</div>
+                    <div class="modal-label">Score</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-value" id="final-streak">0</div>
+                    <div class="modal-label">Max Streak</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-value" id="final-words">0</div>
+                    <div class="modal-label">Words</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-value" id="final-time">0s</div>
+                    <div class="modal-label">Time</div>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-secondary" id="share-btn">Share</button>
+                <button class="btn btn-primary" id="play-again-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Endless Word Typing Challenge &copy; <span id="year"></span></p>
+    </footer>
+    
+    <script>
+        // Game state
+        const state = {
+            active: false,
+            words: [],
+            currentWordIndex: 0,
+            score: 0,
+            streak: 0,
+            maxStreak: 0,
+            wordsTyped: 0,
+            startTime: 0,
+            currentTime: 0,
+            timer: null,
+            wordLists: {
+                easy: [
+                    'hello', 'world', 'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog',
+                    'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'any', 'can', 'had',
+                    'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man',
+                    'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'its', 'let',
+                    'put', 'say', 'she', 'too', 'use', 'her', 'him', 'man', 'men', 'own', 'sun',
+                    'yes', 'yet', 'you', 'ask', 'big', 'buy', 'cup', 'cut', 'die', 'dry', 'eat',
+                    'fly', 'fun', 'god', 'hit', 'hot', 'job', 'key', 'law', 'lie', 'log', 'lot',
+                    'low', 'map', 'mix', 'nod', 'oil', 'pay', 'pie', 'pig', 'pot', 'rat', 'rip',
+                    'row', 'rug', 'run', 'sad', 'sea', 'set', 'sex', 'sir', 'sit', 'sky', 'son',
+                    'tap', 'tie', 'toe', 'top', 'toy', 'try', 'use', 'war', 'wet', 'why', 'win',
+                    'wow', 'arm', 'bad', 'bag', 'ban', 'bat', 'bed', 'bet', 'bid', 'bit', 'bow',
+                    'box', 'bug', 'bus', 'but', 'can', 'cap', 'car', 'cat', 'cop', 'cow', 'cry'
+                ],
+                medium: [
+                    'ability', 'absence', 'academy', 'account', 'accused', 'achieve', 'acquire', 'address', 'advance',
+                    'adverse', 'advised', 'adviser', 'against', 'airline', 'airport', 'alcohol', 'alleged', 'already',
+                    'analyst', 'ancient', 'another', 'anxiety', 'anxious', 'anybody', 'applied', 'arrange', 'arrival',
+                    'article', 'assault', 'assumed', 'assured', 'attempt', 'attract', 'auction', 'average', 'backing',
+                    'balance', 'banking', 'barrier', 'battery', 'bearing', 'beating', 'because', 'bedroom', 'believe',
+                    'beneath', 'benefit', 'besides', 'between', 'billion', 'binding', 'brother', 'brought', 'burning',
+                    'cabinet', 'caliber', 'calling', 'capable', 'capital', 'captain', 'caption', 'capture', 'careful',
+                    'carrier', 'caution', 'ceiling', 'central', 'centric', 'century', 'certain', 'chamber', 'channel',
+                    'chapter', 'charity', 'charlie', 'charter', 'checked', 'chicken', 'chronic', 'circuit', 'classes',
+                    'classic', 'climate', 'closing', 'closure', 'clothes', 'collect', 'college', 'combine', 'comfort',
+                    'command', 'comment', 'compact', 'company', 'compare', 'compete', 'complex', 'concept', 'concern',
+                    'concert', 'conduct', 'confirm', 'connect', 'consent', 'consist', 'contact', 'contain', 'content',
+                    'contest', 'context', 'control', 'convert', 'correct', 'council', 'counsel', 'counter', 'country',
+                    'crucial', 'crystal', 'culture', 'current', 'cutting', 'dealing', 'decided', 'decline', 'default',
+                    'defence', 'deficit', 'deliver', 'density', 'deposit', 'desktop', 'despite', 'destroy', 'develop',
+                    'devoted', 'diamond', 'digital', 'discuss', 'disease', 'display', 'dispute', 'distant', 'diverse',
+                    'divided', 'drawing', 'driving', 'dynamic', 'eastern', 'economy', 'edition', 'elderly', 'element',
+                    'engaged', 'enhance', 'essence', 'evening', 'evident', 'exactly', 'examine', 'example', 'excited',
+                    'exclude', 'exhibit', 'expense', 'explain', 'explore', 'express', 'extreme', 'factory', 'faculty',
+                    'failing', 'failure', 'fashion', 'feature', 'federal', 'feeling', 'fiction', 'fifteen', 'filling',
+                    'finance', 'finding', 'fishing', 'fitness', 'foreign', 'forever', 'formula', 'fortune', 'forward',
+                    'founder', 'freedom', 'further', 'gallery', 'gateway', 'general', 'genetic', 'genuine', 'gigabit',
+                    'greater', 'hanging', 'heading', 'healthy', 'hearing', 'heavily', 'helpful', 'helping', 'herself',
+                    'highway', 'himself', 'history', 'holding', 'holiday', 'housing', 'however', 'hundred', 'husband',
+                    'illegal', 'illness', 'imagine', 'imaging', 'improve', 'include', 'initial', 'inquiry', 'insight',
+                    'install', 'instant', 'instead', 'intense', 'involve', 'jointly', 'journal', 'journey', 'justice',
+                    'justify', 'keeping', 'killing', 'kingdom', 'kitchen', 'knowing', 'landing', 'largely', 'lasting',
+                    'leading', 'learned', 'leisure', 'liberal', 'liberty', 'library', 'license', 'limited', 'listing',
+                    'logical', 'loyalty', 'machine', 'manager', 'married', 'massive', 'maximum', 'meaning', 'measure',
+                    'medical', 'meeting', 'mention', 'message', 'million', 'mineral', 'minimal', 'minimum', 'missing',
+                    'mission', 'mistake', 'mixture', 'monitor', 'monthly', 'morning', 'musical', 'mystery', 'natural',
+                    'neither', 'nervous', 'network', 'neutral', 'notable', 'nothing', 'nowhere', 'nuclear', 'nursing',
+                    'objective', 'obligation', 'obviously', 'occasion', 'offense', 'official', 'offshore', 'operator',
+                    'opponent', 'opposite', 'optimism', 'optional', 'ordinary', 'organize', 'original', 'outcomes',
+                    'outdoor', 'outlook', 'outside', 'overall', 'pacific', 'package', 'parking', 'partial', 'partner',
+                    'passage', 'passing', 'passion', 'passive', 'patient', 'pattern', 'payable', 'payment', 'penalty',
+                    'pending', 'pension', 'percent', 'perfect', 'perform', 'perhaps', 'phoenix', 'picking', 'picture',
+                    'placement', 'planning', 'platform', 'playing', 'pleased', 'podcast', 'pointer', 'politics',
+                    'portable', 'portion', 'poverty', 'precise', 'predict', 'premier', 'premium', 'prepare', 'presence',
+                    'present', 'prevent', 'primary', 'printer', 'privacy', 'private', 'problem', 'proceed', 'process',
+                    'produce', 'product', 'profile', 'program', 'project', 'promise', 'promote', 'protect', 'protein',
+                    'protest', 'provide', 'publish', 'purpose', 'pushing', 'qualify', 'quality', 'quarter', 'radical',
+                    'railway', 'readily', 'reading', 'reality', 'realize', 'receipt', 'receive', 'recover', 'reflect',
+                    'regular', 'related', 'release', 'remains', 'removal', 'removed', 'replace', 'request', 'require',
+                    'reserve', 'resolve', 'respect', 'respond', 'restore', 'retired', 'revenue', 'reverse', 'rollout',
+                    'routine', 'running', 'satisfy', 'science', 'section', 'segment', 'serious', 'service', 'serving',
+                    'session', 'setting', 'seventh', 'several', 'shortly', 'showing', 'silence', 'silicon', 'similar',
+                    'sitting', 'sixteen', 'skilled', 'smoking', 'society', 'somehow', 'someone', 'speaker', 'special',
+                    'species', 'sponsor', 'station', 'storage', 'strange', 'stretch', 'student', 'studied', 'subject',
+                    'succeed', 'success', 'suggest', 'summary', 'support', 'suppose', 'supreme', 'surface', 'surgery',
+                    'surplus', 'survive', 'suspect', 'sustain', 'teacher', 'telecom', 'telling', 'tension', 'theatre',
+                    'therapy', 'thereby', 'thought', 'through', 'tonight', 'totally', 'touched', 'towards', 'traffic',
+                    'trouble', 'turning', 'typical', 'uniform', 'unknown', 'unusual', 'upgrade', 'upscale', 'utility',
+                    'variety', 'various', 'vehicle', 'venture', 'version', 'veteran', 'victory', 'viewing', 'village',
+                    'violent', 'virtual', 'visible', 'waiting', 'walking', 'wanting', 'warning', 'warrant', 'wearing',
+                    'weather', 'webcast', 'website', 'wedding', 'weekend', 'welcome', 'welfare', 'western', 'whereas',
+                    'whereby', 'whether', 'willing', 'winning', 'without', 'witness', 'working', 'writing', 'written'
+                ],
+                hard: [
+                    'aberration', 'abhorrence', 'abominable', 'abrogated', 'absolution', 'accentuate', 'acclimated',
+                    'accolades', 'accomplice', 'acquiesce', 'acrimonious', 'adamantine', 'adjudicate', 'adolescent',
+                    'adulterate', 'aesthetic', 'affability', 'affidavit', 'aggregate', 'agnostical', 'alacritous',
+                    'albatross', 'allegiance', 'alliteration', 'amalgamate', 'ambiguous', 'ambivalent', 'ameliorate',
+                    'anachronism', 'analogous', 'anathema', 'anecdotal', 'animosity', 'annexation', 'annihilate',
+                    'anomalous', 'antagonism', 'antediluvian', 'antiquated', 'apocalypse', 'apoplectic', 'apotheosis',
+                    'apparition', 'arbitrate', 'archipelago', 'aristocrat', 'articulate', 'ascertain', 'aspiration',
+                    'assiduous', 'asymptotic', 'atrocious', 'attenuate', 'audacious', 'auspicious', 'authoritarian',
+                    'autonomous', 'avaricious', 'bacchanal', 'balderdash', 'bamboozle', 'barbarous', 'beatific',
+                    'bedlamite', 'beleaguer', 'bellicose', 'belligerent', 'beneficent', 'bequeathed', 'besmirched',
+                    'blandishment', 'blasphemy', 'boisterous', 'bombastic', 'bourgeois', 'braggadocio', 'breviloquent',
+                    'brouhaha', 'bureaucrat', 'cacophony', 'callipygian', 'capricious', 'cataclysm', 'catastrophe',
+                    'caustically', 'celeritous', 'charlatan', 'chimerical', 'chivalrous', 'circuitous', 'clairvoyant',
+                    'clandestine', 'coeval', 'cognizant', 'colloquial', 'comatose', 'commensurate', 'compendium',
+                    'complacent', 'concupiscent', 'condescend', 'confabulate', 'conflagration', 'conglomerate',
+                    'connoisseur', 'consanguine', 'consternate', 'consummate', 'contraband', 'contravene', 'contrition',
+                    'conundrum', 'convivial', 'copacetic', 'cornucopia', 'corpulent', 'coterie', 'countermand',
+                    'crapulous', 'credulity', 'criterion', 'cryptic', 'culmination', 'cupidity', 'curmudgeon',
+                    'dalliance', 'dastardly', 'dauntless', 'debauchery', 'deciduous', 'decorous', 'defenestrate',
+                    'deleterious', 'delineate', 'demagogue', 'denouement', 'deprecate', 'derivative', 'desecrate',
+                    'despicable', 'desultory', 'diaphanous', 'dichotomy', 'didactic', 'dilapidated', 'discombobulate',
+                    'disconsolate', 'disparate', 'disseminate', 'dissolute', 'dissonant', 'distaff', 'divination',
+                    'doctrinaire', 'dowager', 'draconian', 'ebullient', 'eclectic', 'edification', 'efficacious',
+                    'effrontery', 'egregious', 'elegiacal', 'elocution', 'embezzle', 'empirical', 'enervate',
+                    'enigmatic', 'ephemeral', 'epicurean', 'epiphany', 'equanimity', 'equivocal', 'erudite', 'esoteric',
+                    'euphemism', 'exacerbate', 'exasperate', 'excoriate', 'execrable', 'exhortation', 'exonerate',
+                    'expedient', 'expiate', 'expunge', 'extemporize', 'extenuate', 'extricate', 'facetious', 'fallacious',
+                    'fastidious', 'fatuous', 'fecundity', 'fervent', 'filibuster', 'flabbergast', 'florid', 'foible',
+                    'forbearance', 'fortuitous', 'fractious', 'fugacious', 'fulminate', 'garrulous', 'germane',
+                    'grandiose', 'gratuitous', 'gregarious', 'guileless', 'hackneyed', 'halcyon', 'harangue',
+                    'hegemony', 'heterodox', 'histrionic', 'hobbledehoy', 'hubris', 'iconoclast', 'idiosyncrasy',
+                    'ignominious', 'imbroglio', 'immutable', 'impecunious', 'imperious', 'impetuous', 'importune',
+                    'impugn', 'inane', 'incongruous', 'incontrovertible', 'indefatigable', 'indolent', 'ineffable',
+                    'inexorable', 'ingenuous', 'inimical', 'iniquitous', 'inscrutable', 'insidious', 'insouciant',
+                    'intransigent', 'inundate', 'invective', 'inveterate', 'irascible', 'jocular', 'juggernaut',
+                    'juxtapose', 'kaleidoscopic', 'kowtow', 'labyrinthine', 'lachrymose', 'languid', 'largess',
+                    'legerdemain', 'licentious', 'limpid', 'loquacious', 'lugubrious', 'machination', 'magnanimous',
+                    'maladroit', 'malfeasance', 'maudlin', 'mellifluous', 'mendacious', 'meretricious', 'metamorphosis',
+                    'meticulous', 'mettlesome', 'misanthrope', 'miscreant', 'mollify', 'mordant', 'moribund',
+                    'munificent', 'myriad', 'nadir', 'nebulous', 'nefarious', 'nemesis', 'noisome', 'nonplussed',
+                    'nostrum', 'obdurate', 'obfuscate', 'obstreperous', 'officious', 'oleaginous', 'omnipotent',
+                    'onerous', 'opprobrium', 'oscillate', 'ossified', 'ostensible', 'ostentatious', 'overweening',
+                    'palaver', 'palliate', 'panacea', 'paradigm', 'paragon', 'pariah', 'parsimonious', 'pastiche',
+                    'paucity', 'peccadillo', 'pedantic', 'pellucid', 'penurious', 'perfidious', 'perfunctory',
+                    'pernicious', 'perspicacious', 'pertinacious', 'petulant', 'philistine', 'phlegmatic', 'piquant',
+                    'plenitude', 'plethora', 'poignant', 'polemic', 'portentous', 'precipitous', 'precocious',
+                    'prescient', 'probity', 'proclivity', 'profligate', 'prolix', 'propensity', 'propinquity',
+                    'prosaic', 'proselytize', 'protracted', 'prurient', 'puerile', 'pugnacious', 'pulchritudinous',
+                    'pusillanimous', 'quagmire', 'quixotic', 'quotidian', 'raconteur', 'rancorous', 'rapacious',
+                    'recalcitrant', 'recidivism', 'redolent', 'relegate', 'remuneration', 'repudiate', 'rescind',
+                    'ribald', 'rife', 'sagacious', 'salient', 'sanguine', 'sardonic', 'sartorial', 'scintilla',
+                    'scurrilous', 'sedulous', 'seminal', 'serendipity', 'simulacrum', 'solicitous', 'somnolent',
+                    'sophistry', 'spurious', 'stentorian', 'stolid', 'subjugate', 'sublime', 'subterfuge',
+                    'supercilious', 'superfluous', 'surfeit', 'surreptitious', 'sybarite', 'sycophant', 'taciturn',
+                    'tantamount', 'temerity', 'tenacious', 'tendentious', 'timorous', 'tirade', 'trenchant',
+                    'truculent', 'turpitude', 'ubiquitous', 'umbrage', 'unctuous', 'upbraid', 'usurp', 'vacuous',
+                    'variegated', 'vehement', 'venal', 'venerate', 'veracious', 'verdant', 'vestige', 'vicissitude',
+                    'vilify', 'virago', 'vitriolic', 'vociferous', 'voluble', 'wanton', 'wheedle', 'winsome',
+                    'xenophobia', 'zeitgeist'
+                ]
+            }
+        };
+        
+        // DOM elements
+        const elements = {
+            wordsContainer: document.getElementById('words-container'),
+            wordInput: document.getElementById('word-input'),
+            startBtn: document.getElementById('start-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            score: document.getElementById('score'),
+            streak: document.getElementById('streak'),
+            words: document.getElementById('words'),
+            time: document.getElementById('time'),
+            resultModal: document.getElementById('result-modal'),
+            finalScore: document.getElementById('final-score'),
+            finalStreak: document.getElementById('final-streak'),
+            finalWords: document.getElementById('final-words'),
+            finalTime: document.getElementById('final-time'),
+            shareBtn: document.getElementById('share-btn'),
+            playAgainBtn: document.getElementById('play-again-btn'),
+            year: document.getElementById('year')
+        };
+        
+        // Initialize the game
+        function init() {
+            // Set current year in footer
+            elements.year.textContent = new Date().getFullYear();
+            
+            // Event listeners
+            elements.startBtn.addEventListener('click', startGame);
+            elements.resetBtn.addEventListener('click', resetGame);
+            elements.wordInput.addEventListener('input', handleInput);
+            elements.playAgainBtn.addEventListener('click', playAgain);
+            elements.shareBtn.addEventListener('click', shareResults);
+            
+            // Initialize word input
+            elements.wordInput.disabled = true;
+        }
+        
+        // Start the game
+        function startGame() {
+            if (state.active) return;
+            
+            state.active = true;
+            state.words = generateWords();
+            state.currentWordIndex = 0;
+            state.score = 0;
+            state.streak = 0;
+            state.maxStreak = 0;
+            state.wordsTyped = 0;
+            state.startTime = Date.now();
+            state.currentTime = 0;
+            
+            // Start timer
+            state.timer = setInterval(updateTimer, 1000);
+            
+            // Update UI
+            renderWords();
+            elements.wordInput.disabled = false;
+            elements.wordInput.value = '';
+            elements.wordInput.focus();
+            elements.startBtn.disabled = true;
+            elements.resetBtn.disabled = false;
+            updateStats();
+        }
+        
+        // Generate words based on difficulty
+        function generateWords() {
+            const count = 20; // Number of words to display
+            const words = [];
+            const difficulty = Math.min(Math.floor(state.wordsTyped / 50), 2); // 0=easy, 1=medium, 2=hard
+            
+            let wordList;
+            switch(difficulty) {
+                case 0: wordList = state.wordLists.easy; break;
+                case 1: wordList = state.wordLists.medium; break;
+                case 2: wordList = state.wordLists.hard; break;
+                default: wordList = state.wordLists.easy;
+            }
+            
+            for (let i = 0; i < count; i++) {
+                const randomIndex = Math.floor(Math.random() * wordList.length);
+                words.push(wordList[randomIndex]);
+            }
+            
+            return words;
+        }
+        
+        // Render words to the container
+        function renderWords() {
+            elements.wordsContainer.innerHTML = '';
+            
+            state.words.forEach((word, index) => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.textContent = word;
+                
+                if (index === state.currentWordIndex) {
+                    span.classList.add('current');
+                } else if (index < state.currentWordIndex) {
+                    span.classList.add('correct');
+                }
+                
+                elements.wordsContainer.appendChild(span);
+            });
+            
+            // Scroll to keep current word in view
+            const currentWord = elements.wordsContainer.querySelector('.current');
+            if (currentWord) {
+                currentWord.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
+        }
+        
+        // Handle word input
+        function handleInput(e) {
+            if (!state.active) return;
+            
+            const input = e.target.value.trim();
+            const currentWord = state.words[state.currentWordIndex];
+            
+            // Check if space was pressed or word was completed
+            if (input.endsWith(' ') || input === currentWord) {
+                if (input.trim() === currentWord) {
+                    // Correct word
+                    state.currentWordIndex++;
+                    state.wordsTyped++;
+                    state.streak++;
+                    state.maxStreak = Math.max(state.maxStreak, state.streak);
+                    
+                    // Calculate score (base points + streak bonus)
+                    const basePoints = 10;
+                    const streakBonus = Math.floor(state.streak / 5) * 5;
+                    state.score += basePoints + streakBonus;
+                    
+                    // Check if we need more words
+                    if (state.currentWordIndex >= state.words.length - 5) {
+                        const newWords = generateWords();
+                        state.words = [...state.words.slice(state.currentWordIndex), ...newWords];
+                        state.currentWordIndex = 0;
+                    }
+                    
+                    // Update UI
+                    elements.wordInput.value = '';
+                    renderWords();
+                    updateStats();
+                } else {
+                    // Incorrect word - end game
+                    endGame();
+                }
+            }
+        }
+        
+        // Update game stats
+        function updateStats() {
+            elements.score.textContent = state.score;
+            elements.streak.textContent = state.streak;
+            elements.words.textContent = state.wordsTyped;
+            
+            // Visual feedback for streak milestones
+            if (state.streak > 0 && state.streak % 5 === 0) {
+                elements.streak.classList.add('pulse');
+                setTimeout(() => {
+                    elements.streak.classList.remove('pulse');
+                }, 500);
+            }
+        }
+        
+        // Update timer
+        function updateTimer() {
+            state.currentTime = Math.floor((Date.now() - state.startTime) / 1000);
+            elements.time.textContent = `${state.currentTime}s`;
+        }
+        
+        // End the game
+        function endGame() {
+            if (!state.active) return;
+            
+            state.active = false;
+            clearInterval(state.timer);
+            
+            // Mark incorrect word
+            const wordElements = elements.wordsContainer.querySelectorAll('.word');
+            if (wordElements[state.currentWordIndex]) {
+                wordElements[state.currentWordIndex].classList.add('incorrect');
+            }
+            
+            // Disable input
+            elements.wordInput.disabled = true;
+            elements.wordInput.value = '';
+            
+            // Show results
+            showResults();
+        }
+        
+        // Show results modal
+        function showResults() {
+            elements.finalScore.textContent = state.score;
+            elements.finalStreak.textContent = state.maxStreak;
+            elements.finalWords.textContent = state.wordsTyped;
+            elements.finalTime.textContent = `${state.currentTime}s`;
+            
+            elements.resultModal.classList.add('active');
+        }
+        
+        // Reset the game
+        function resetGame() {
+            state.active = false;
+            clearInterval(state.timer);
+            
+            // Reset UI
+            elements.wordsContainer.innerHTML = '';
+            elements.wordInput.value = '';
+            elements.wordInput.disabled = true;
+            elements.startBtn.disabled = false;
+            elements.resetBtn.disabled = true;
+            
+            // Reset stats display
+            elements.score.textContent = '0';
+            elements.streak.textContent = '0';
+            elements.words.textContent = '0';
+            elements.time.textContent = '0s';
+        }
+        
+        // Play again
+        function playAgain() {
+            elements.resultModal.classList.remove('active');
+            resetGame();
+            startGame();
+        }
+        
+        // Share results
+        function shareResults() {
+            const shareText = `I scored ${state.score} points in the Endless Word Challenge! ` +
+                             `My max streak was ${state.maxStreak} words without mistakes. ` +
+                             `Can you beat my score?`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Endless Word Challenge',
+                    text: shareText,
+                    url: window.location.href
+                }).catch(err => {
+                    console.log('Error sharing:', err);
+                    fallbackShare();
+                });
+            } else {
+                fallbackShare();
+            }
+            
+            function fallbackShare() {
+                // Copy to clipboard
+                navigator.clipboard.writeText(shareText + ' ' + window.location.href).then(() => {
+                    alert('Results copied to clipboard! Paste it to share.');
+                }).catch(err => {
+                    console.log('Could not copy text: ', err);
+                    prompt('Copy this to share:', shareText + ' ' + window.location.href);
+                });
+            }
+        }
+        
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
