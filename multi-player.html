@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Compete in real-time typing races against players worldwide. Improve your typing speed and accuracy while having fun!">
-    <meta name="keywords" content="typing game, typing test, multiplayer typing, typing race, typing competition, WPM test">
+    <meta name="description" content="Compete in real-time typing races against players worldwide. Improve your typing speed and accuracy in this exciting multiplayer typing game.">
+    <meta name="keywords" content="typing game, typing test, multiplayer typing, typing race, typing competition, WPM test, typing speed">
     <meta name="author" content="TypingRace Pro">
     <title>TypingRace Pro | Real-Time Multiplayer Typing Competition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -170,6 +170,17 @@
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        .player-setup h2 {
+            margin-bottom: 15px;
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+        }
+
+        .player-setup p {
+            color: var(--gray);
+            margin-bottom: 20px;
         }
 
         .player-setup input {
@@ -702,21 +713,6 @@
             }
         }
 
-        /* Loading Spinner */
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--white);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         /* Matchmaking Animation */
         .matchmaking-container {
             text-align: center;
@@ -747,11 +743,6 @@
         }
         .dot:nth-child(3) {
             animation-delay: 0.4s;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
@@ -803,7 +794,7 @@
             <!-- Player Setup Section -->
             <div class="player-setup">
                 <h2>Enter Your Player Name</h2>
-                <p>Choose a name to display during races (max 20 characters)</p>
+                <p>Choose a name to display during races (3-20 characters)</p>
                 <input type="text" id="playerName" placeholder="TypeRacerPro123" maxlength="20">
                 <button id="joinRaceBtn" class="btn btn-primary">
                     Join Multiplayer Race
@@ -1060,9 +1051,6 @@
             if (savedName) {
                 playerNameInput.value = savedName;
             }
-            
-            // In a real implementation, you would set up Firebase listeners here
-            // For this demo, we'll simulate the multiplayer experience
         }
 
         // Start the race flow (show player setup)
@@ -1216,7 +1204,7 @@
         function startRace() {
             raceState.status = 'racing';
             raceState.startTime = new Date().getTime();
-            typingStats.startTime = new Date().getTime();
+            typingStats.startTime = null; // Will be set on first keystroke
             
             // Reset and animate the timer bar
             timerBar.style.width = '100%';
@@ -1246,16 +1234,37 @@
             }, raceState.raceDuration * 1000);
         }
 
-        // Handle typing input
+        // Handle typing input - UPDATED FOR ACCURATE WPM AND ACCURACY
         function handleTyping(e) {
             const inputText = e.target.value;
             const textToType = raceState.text;
             
-            // Calculate progress
+            // Initialize timing on first keystroke
+            if (inputText.length === 1 && !typingStats.startTime) {
+                typingStats.startTime = new Date().getTime();
+                typingStats.correctChars = 0;
+                typingStats.incorrectChars = 0;
+                typingStats.totalKeystrokes = 0;
+            }
+            
+            // Calculate correct and incorrect characters
             let correctChars = 0;
             let incorrectChars = 0;
             
-            // Update the displayed text with correct/incorrect highlighting
+            for (let i = 0; i < inputText.length; i++) {
+                if (inputText[i] === textToType[i]) {
+                    correctChars++;
+                } else {
+                    incorrectChars++;
+                }
+            }
+            
+            // Update typing stats
+            typingStats.correctChars = correctChars;
+            typingStats.incorrectChars = incorrectChars;
+            typingStats.totalKeystrokes = inputText.length;
+            
+            // Update the displayed text with highlighting
             let displayHTML = '';
             for (let i = 0; i < textToType.length; i++) {
                 let charClass = '';
@@ -1263,10 +1272,8 @@
                 if (i < inputText.length) {
                     if (inputText[i] === textToType[i]) {
                         charClass = 'correct';
-                        correctChars++;
                     } else {
                         charClass = 'incorrect';
-                        incorrectChars++;
                     }
                 }
                 
@@ -1279,23 +1286,25 @@
             
             textDisplay.innerHTML = displayHTML;
             
-            // Update typing stats
-            typingStats.correctChars = correctChars;
-            typingStats.incorrectChars = incorrectChars;
-            typingStats.totalKeystrokes = inputText.length;
-            
             // Calculate progress percentage
             const progress = (correctChars / textToType.length) * 100;
             currentPlayer.progress = Math.min(100, progress);
             
-            // Calculate WPM (Words Per Minute)
-            const timeElapsed = (new Date().getTime() - typingStats.startTime) / 60000; // in minutes
-            const wordsTyped = correctChars / 5; // standard word length
-            currentPlayer.wpm = Math.round(wordsTyped / timeElapsed);
+            // Calculate WPM (Words Per Minute) - IMPROVED CALCULATION
+            if (typingStats.startTime) {
+                const timeElapsed = (new Date().getTime() - typingStats.startTime) / 60000; // in minutes
+                if (timeElapsed > 0) {
+                    // Standard word is 5 characters, including spaces
+                    const wordsTyped = correctChars / 5;
+                    currentPlayer.wpm = Math.max(0, Math.round(wordsTyped / timeElapsed));
+                }
+            }
             
-            // Calculate accuracy
+            // Calculate accuracy - IMPROVED CALCULATION
             const totalTypedChars = correctChars + incorrectChars;
-            currentPlayer.accuracy = totalTypedChars > 0 ? Math.round((correctChars / totalTypedChars) * 100) : 0;
+            currentPlayer.accuracy = totalTypedChars > 0 ? 
+                Math.round((correctChars / totalTypedChars) * 100) : 
+                0;
             
             // Update player in race state
             raceState.players[currentPlayer.id] = {...currentPlayer};
@@ -1309,21 +1318,21 @@
             renderPlayerProgress();
         }
 
-        // Update all players' progress during the race
+        // Update all players' progress during the race - UPDATED FOR CONSISTENT WPM
         function updateRaceProgress() {
             if (raceState.status !== 'racing') return;
             
-            // Update current player's WPM if they're still typing
-            if (!currentPlayer.finished) {
+            // Only update WPM if player is actively typing
+            if (!currentPlayer.finished && typingStats.startTime) {
                 const timeElapsed = (new Date().getTime() - typingStats.startTime) / 60000;
-                const wordsTyped = typingStats.correctChars / 5;
-                currentPlayer.wpm = Math.round(wordsTyped / timeElapsed);
-                raceState.players[currentPlayer.id].wpm = currentPlayer.wpm;
+                if (timeElapsed > 0) {
+                    const wordsTyped = typingStats.correctChars / 5;
+                    currentPlayer.wpm = Math.max(0, Math.round(wordsTyped / timeElapsed));
+                    raceState.players[currentPlayer.id].wpm = currentPlayer.wpm;
+                }
             }
             
             renderPlayerProgress();
-            
-            // Continue updating every second
             setTimeout(updateRaceProgress, 1000);
         }
 
@@ -1352,7 +1361,7 @@
                     currentPlayerData.progress = Math.min(100, currentPlayerData.progress + (progressIncrement * randomFactor));
                     
                     // Update WPM with some variation
-                    currentPlayerData.wpm = player.baseWPM * (0.9 + Math.random() * 0.2); // ±10% variation
+                    currentPlayerData.wpm = Math.round(player.baseWPM * (0.9 + Math.random() * 0.2)); // ±10% variation
                     
                     // Random chance to finish
                     if (currentPlayerData.progress >= 100) {
@@ -1449,7 +1458,7 @@
                 }
             }
             
-            // Update player stats
+            // Update player stats (no decimal points)
             finalWpm.textContent = `${currentPlayer.wpm} WPM`;
             finalAccuracy.textContent = `${currentPlayer.accuracy}%`;
             finalPosition.textContent = `${currentPlayer.position}/${playersArray.length}`;
