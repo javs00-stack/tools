@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compete in real-time typing races against players worldwide. Improve your typing speed and accuracy in this exciting multiplayer typing game.">
+    <meta name="keywords" content="typing game, typing test, multiplayer typing, typing race, typing competition, WPM test, typing speed">
+    <meta name="author" content="TypingRace Pro">
+    <title>TypingRace Pro | Real-Time Multiplayer Typing Competition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --darker: #1a1e21;
+            --success: #4bb543;
+            --warning: #f0ad4e;
+            --danger: #d9534f;
+            --danger-dark: #c9302c;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --white: #ffffff;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 15px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 16px;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        nav ul li a:hover {
+            color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        /* Main Content Styles */
+        main {
+            flex: 1;
+            padding: 40px 0;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+            color: var(--darker);
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+
+        /* Ad Container Styles */
+        .ad-container {
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin: 30px auto;
+            text-align: center;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Game Container Styles */
+        .game-container {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .player-setup {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .player-setup h2 {
+            margin-bottom: 15px;
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+        }
+
+        .player-setup p {
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .player-setup input {
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .player-setup input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .race-container {
+            display: none;
+        }
+
+        .race-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .race-timer, .race-players {
+            background-color: var(--light);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 16px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .race-timer {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .race-players {
+            color: var(--dark);
+        }
+
+        /* Timer Bar Styles */
+        .timer-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .timer-pulse {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 100%;
+            background-color: var(--primary);
+            opacity: 0.7;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Race Track Styles */
+        .race-track {
+            background-color: var(--light);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .text-display {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+            position: relative;
+            color: var(--dark);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .text-display span.correct {
+            color: var(--success);
+        }
+
+        .text-display span.incorrect {
+            color: var(--danger);
+            text-decoration: underline;
+        }
+
+        .text-display span.current {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .text-display span.current::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .input-area {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            height: 120px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+        }
+
+        .input-area:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        /* Players Progress Styles */
+        .players-progress {
+            margin-top: 30px;
+        }
+
+        .player-progress {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .player-name {
+            width: 120px;
+            font-weight: 500;
+            min-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            height: 20px;
+            background-color: var(--light-gray);
+            border-radius: 10px;
+            margin: 0 10px;
+            overflow: hidden;
+            min-width: 150px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.5s ease-out;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 10px;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .player-wpm {
+            width: 80px;
+            text-align: right;
+            font-weight: 500;
+            min-width: 60px;
+            font-size: 15px;
+        }
+
+        /* Race Results Styles */
+        .race-results {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .trophy {
+            font-size: 100px;
+            margin-bottom: 20px;
+            color: var(--gold);
+            display: none;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .result-message {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .result-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background-color: var(--light);
+            padding: 15px 25px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+
+        .stat-box h3 {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .stat-box p {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .result-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .leaderboard {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .leaderboard th, .leaderboard td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .leaderboard th {
+            background-color: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .leaderboard tr:nth-child(even) {
+            background-color: var(--light);
+        }
+
+        .leaderboard tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .position-1 {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .position-2 {
+            color: var(--silver);
+            font-weight: bold;
+        }
+
+        .position-3 {
+            color: var(--bronze);
+            font-weight: bold;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 16px;
+            gap: 8px;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(217, 83, 79, 0.3);
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--darker);
+            color: var(--white);
+            padding: 40px 0 20px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section {
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            color: var(--white);
+        }
+
+        .footer-section p {
+            color: var(--light-gray);
+            margin-bottom: 15px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section ul li a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: color 0.3s;
+            display: block;
+            padding: 5px 0;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--white);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-links a {
+            color: var(--white);
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light-gray);
+            font-size: 14px;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            nav ul {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .game-container {
+                padding: 20px;
+            }
+
+            .race-info {
+                flex-direction: column;
+            }
+
+            .player-name {
+                width: 100px;
+            }
+
+            .progress-container {
+                margin: 0;
+            }
+
+            .result-stats {
+                gap: 15px;
+            }
+
+            .stat-box {
+                padding: 12px 20px;
+                min-width: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .text-display {
+                font-size: 16px;
+            }
+
+            .input-area {
+                height: 100px;
+                font-size: 15px;
+            }
+
+            .leaderboard th, .leaderboard td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+
+            .result-message {
+                font-size: 24px;
+            }
+
+            .trophy {
+                font-size: 80px;
+            }
+        }
+
+        /* Matchmaking Animation */
+        .matchmaking-container {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .matchmaking-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            animation: bounce 1s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo">
+                <span class="logo-icon">⌨️</span>
+                <span>Typing<span>Race</span> Pro</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Multiplayer</a></li>
+                    <li><a href="#">Leaderboards</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Real-Time Typing Races</h1>
+            <p>Compete against players worldwide in exciting typing races. Improve your speed and accuracy while having fun!</p>
+            <button id="startRaceBtn" class="btn btn-primary">
+                Start Race Now
+            </button>
+        </section>
+
+        <!-- Ad Container (Top) -->
+        <div class="ad-container">
+            <!-- Google AdSense Ad Unit -->
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+                crossorigin="anonymous"></script>
+            <!-- TypingRace_Top_Leaderboard -->
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                data-ad-slot="XXXXXXXXXX"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
+        <section class="game-container">
+            <!-- Player Setup Section -->
+            <div class="player-setup">
+                <h2>Enter Your Player Name</h2>
+                <p>Choose a name to display during races (3-20 characters)</p>
+                <input type="text" id="playerName" placeholder="TypeRacerPro123" maxlength="20">
+                <button id="joinRaceBtn" class="btn btn-primary">
+                    Join Multiplayer Race
+                </button>
+            </div>
+
+            <!-- Matchmaking Section -->
+            <div class="matchmaking-container" id="matchmakingContainer">
+                <h2>Finding Opponents...</h2>
+                <p>Please wait while we match you with other players</p>
+                <div class="matchmaking-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <button id="cancelMatchmakingBtn" class="btn btn-outline" style="margin-top: 20px;">
+                    Cancel
+                </button>
+            </div>
+
+            <!-- Race Container -->
+            <div class="race-container" id="raceContainer">
+                <div class="race-info">
+                    <div class="race-timer">Race starts in: <span id="countdown">10</span>s</div>
+                    <div class="race-players">Players: <span id="playerCount">1</span>/8</div>
+                </div>
+
+                <div class="timer-container">
+                    <div class="timer-bar" id="timerBar"></div>
+                    <div class="timer-pulse" id="timerPulse"></div>
+                </div>
+
+                <div class="race-track">
+                    <div class="text-display" id="textDisplay"></div>
+                    <textarea class="input-area" id="typingInput" placeholder="The race will begin when the countdown finishes..." disabled></textarea>
+                </div>
+
+                <div class="players-progress" id="playersProgress">
+                    <!-- Player progress bars will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Race Results Section -->
+            <div class="race-results" id="raceResults">
+                <div class="trophy" id="trophy">🏆</div>
+                <h2 class="result-message" id="resultMessage"></h2>
+                
+                <div class="result-stats">
+                    <div class="stat-box">
+                        <h3>Your Speed</h3>
+                        <p id="finalWpm">0 WPM</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Accuracy</h3>
+                        <p id="finalAccuracy">0%</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Position</h3>
+                        <p id="finalPosition">0/0</p>
+                    </div>
+                </div>
+
+                <div class="result-buttons">
+                    <button id="raceAgainBtn" class="btn btn-primary">
+                        Race Again
+                    </button>
+                    <button id="tryAgainBtn" class="btn btn-outline try-again">
+                        TRY AGAIN
+                    </button>
+                </div>
+
+                <h3 style="margin-top: 30px;">Race Results</h3>
+                <table class="leaderboard">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Player</th>
+                            <th>WPM</th>
+                            <th>Accuracy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Leaderboard rows will be added here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Ad Container (Bottom) -->
+        <div class="ad-container">
+            <!-- Google AdSense Ad Unit -->
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+                crossorigin="anonymous"></script>
+            <!-- TypingRace_Bottom_Leaderboard -->
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                data-ad-slot="XXXXXXXXXX"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>TypingRace Pro</h3>
+                    <p>Improve your typing skills while competing with players from around the world in real-time typing races.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">📘</a>
+                        <a href="#" aria-label="Twitter">🐦</a>
+                        <a href="#" aria-label="Instagram">📷</a>
+                        <a href="#" aria-label="YouTube">▶️</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Multiplayer</a></li>
+                        <li><a href="#">Leaderboards</a></li>
+                        <li><a href="#">Typing Tips</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Typing Lessons</a></li>
+                        <li><a href="#">Practice Tests</a></li>
+                        <li><a href="#">Keyboard Layouts</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 TypingRace Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Firebase configuration (replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXX",
+            authDomain: "typingrace-pro.firebaseapp.com",
+            databaseURL: "https://typingrace-pro.firebaseio.com",
+            projectId: "typingrace-pro",
+            storageBucket: "typingrace-pro.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdefghijk1234567890",
+            measurementId: "G-XXXXXXXXXX"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Game state variables
+        let currentPlayer = {
+            name: '',
+            id: '',
+            progress: 0,
+            wpm: 0,
+            accuracy: 0,
+            finished: false,
+            position: 0
+        };
+        
+        let raceState = {
+            status: 'waiting', // waiting, matchmaking, counting, racing, finished
+            countdown: 10,
+            players: {},
+            text: '',
+            startTime: null,
+            endTime: null,
+            raceDuration: 60, // seconds
+            matchmakingInterval: null
+        };
+        
+        let typingStats = {
+            correctChars: 0,
+            incorrectChars: 0,
+            totalKeystrokes: 0,
+            startTime: null,
+            endTime: null
+        };
+
+        // DOM elements
+        const playerNameInput = document.getElementById('playerName');
+        const joinRaceBtn = document.getElementById('joinRaceBtn');
+        const startRaceBtn = document.getElementById('startRaceBtn');
+        const matchmakingContainer = document.getElementById('matchmakingContainer');
+        const cancelMatchmakingBtn = document.getElementById('cancelMatchmakingBtn');
+        const raceContainer = document.getElementById('raceContainer');
+        const textDisplay = document.getElementById('textDisplay');
+        const typingInput = document.getElementById('typingInput');
+        const countdownDisplay = document.getElementById('countdown');
+        const timerBar = document.getElementById('timerBar');
+        const timerPulse = document.getElementById('timerPulse');
+        const playerCountDisplay = document.getElementById('playerCount');
+        const playersProgressContainer = document.getElementById('playersProgress');
+        const raceResults = document.getElementById('raceResults');
+        const trophy = document.getElementById('trophy');
+        const resultMessage = document.getElementById('resultMessage');
+        const finalWpm = document.getElementById('finalWpm');
+        const finalAccuracy = document.getElementById('finalAccuracy');
+        const finalPosition = document.getElementById('finalPosition');
+        const leaderboardBody = document.getElementById('leaderboardBody');
+        const raceAgainBtn = document.getElementById('raceAgainBtn');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+
+        // Sample texts for races (can be expanded or fetched from an API)
+        const sampleTexts = [
+            "The quick brown fox jumps over the lazy dog. This classic pangram contains every letter of the English alphabet and is commonly used for typing practice.",
+            "To be or not to be, that is the question. Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles.",
+            "The greatest glory in living lies not in never falling, but in rising every time we fall. Success is not final, failure is not fatal: it is the courage to continue that counts.",
+            "In the middle of difficulty lies opportunity. The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle.",
+            "Life is what happens when you're busy making other plans. You only live once, but if you do it right, once is enough. The purpose of our lives is to be happy.",
+            "The future belongs to those who believe in the beauty of their dreams. Do not go where the path may lead, go instead where there is no path and leave a trail.",
+            "It does not matter how slowly you go as long as you do not stop. Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time.",
+            "Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do. So throw off the bowlines. Sail away from the safe harbor.",
+            "The best and most beautiful things in the world cannot be seen or even touched - they must be felt with the heart. Keep love in your heart. A life without it is like a sunless garden.",
+            "You miss 100% of the shots you don't take. Success is stumbling from failure to failure with no loss of enthusiasm. The only limit to our realization of tomorrow is our doubts of today."
+        ];
+
+        // Initialize the game
+        function initGame() {
+            // Set up event listeners
+            startRaceBtn.addEventListener('click', startRaceFlow);
+            joinRaceBtn.addEventListener('click', joinRace);
+            cancelMatchmakingBtn.addEventListener('click', cancelMatchmaking);
+            typingInput.addEventListener('input', handleTyping);
+            raceAgainBtn.addEventListener('click', resetRace);
+            tryAgainBtn.addEventListener('click', resetRace);
+
+            // Generate a unique ID for the player
+            currentPlayer.id = generateId();
+            
+            // Check for saved player name in localStorage
+            const savedName = localStorage.getItem('typingrace_playerName');
+            if (savedName) {
+                playerNameInput.value = savedName;
+            }
+        }
+
+        // Start the race flow (show player setup)
+        function startRaceFlow() {
+            document.querySelector('.player-setup').style.display = 'block';
+            raceContainer.style.display = 'none';
+            raceResults.style.display = 'none';
+            matchmakingContainer.style.display = 'none';
+            startRaceBtn.style.display = 'none';
+        }
+
+        // Join a race (start matchmaking)
+        function joinRace() {
+            const name = playerNameInput.value.trim();
+            if (!name) {
+                alert('Please enter your player name');
+                return;
+            }
+            
+            // Validate name
+            if (name.length < 3 || name.length > 20) {
+                alert('Player name must be between 3 and 20 characters');
+                return;
+            }
+            
+            // Save player name to localStorage
+            localStorage.setItem('typingrace_playerName', name);
+            
+            currentPlayer.name = name;
+            currentPlayer.progress = 0;
+            currentPlayer.wpm = 0;
+            currentPlayer.accuracy = 0;
+            currentPlayer.finished = false;
+            currentPlayer.position = 0;
+            
+            // Show matchmaking screen
+            document.querySelector('.player-setup').style.display = 'none';
+            matchmakingContainer.style.display = 'block';
+            raceContainer.style.display = 'none';
+            raceResults.style.display = 'none';
+            
+            // Start matchmaking (simulated)
+            startMatchmaking();
+        }
+
+        // Start matchmaking (simulated)
+        function startMatchmaking() {
+            raceState.status = 'matchmaking';
+            
+            // Simulate finding players (in a real app, this would use Firebase matchmaking)
+            raceState.matchmakingInterval = setInterval(() => {
+                // Random chance to find a match
+                if (Math.random() > 0.7) {
+                    matchFound();
+                }
+            }, 1000);
+        }
+
+        // Cancel matchmaking
+        function cancelMatchmaking() {
+            clearInterval(raceState.matchmakingInterval);
+            raceState.status = 'waiting';
+            document.querySelector('.player-setup').style.display = 'block';
+            matchmakingContainer.style.display = 'none';
+        }
+
+        // Match found - start the race setup
+        function matchFound() {
+            clearInterval(raceState.matchmakingInterval);
+            matchmakingContainer.style.display = 'none';
+            
+            // Set up the race text
+            const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+            raceState.text = randomText;
+            textDisplay.textContent = randomText;
+            
+            // Add AI players (simulated)
+            const aiCount = 3 + Math.floor(Math.random() * 4); // 3-6 AI players
+            raceState.players = {
+                [currentPlayer.id]: {...currentPlayer}
+            };
+            
+            // Add AI players with different skill levels
+            for (let i = 1; i <= aiCount; i++) {
+                const skillLevel = Math.random(); // 0-1
+                let aiName, baseWPM;
+                
+                if (skillLevel < 0.3) {
+                    aiName = `Newbie${i}`;
+                    baseWPM = 20 + Math.random() * 20; // 20-40 WPM
+                } else if (skillLevel < 0.7) {
+                    aiName = `Racer${i}`;
+                    baseWPM = 40 + Math.random() * 30; // 40-70 WPM
+                } else {
+                    aiName = `Pro${i}`;
+                    baseWPM = 70 + Math.random() * 50; // 70-120 WPM
+                }
+                
+                raceState.players[`ai${i}`] = {
+                    id: `ai${i}`,
+                    name: aiName,
+                    progress: 0,
+                    wpm: 0,
+                    accuracy: 95 + Math.random() * 5, // 95-100%
+                    finished: false,
+                    position: 0,
+                    baseWPM: baseWPM
+                };
+            }
+            
+            updatePlayerCount();
+            renderPlayerProgress();
+            
+            // Show the race container
+            raceContainer.style.display = 'block';
+            
+            // Start the countdown
+            startCountdown();
+        }
+
+        // Start the race countdown
+        function startCountdown() {
+            raceState.status = 'counting';
+            raceState.countdown = 10;
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = 'var(--primary)';
+            timerBar.style.transition = 'none';
+            timerPulse.style.display = 'block';
+            
+            const countdownInterval = setInterval(() => {
+                raceState.countdown--;
+                countdownDisplay.textContent = raceState.countdown;
+                
+                // Update timer bar
+                const percentage = (raceState.countdown / 10) * 100;
+                timerBar.style.width = `${percentage}%`;
+                
+                // Change color when time is running out
+                if (raceState.countdown <= 3) {
+                    timerBar.style.backgroundColor = 'var(--danger)';
+                }
+                
+                if (raceState.countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    startRace();
+                }
+            }, 1000);
+        }
+
+        // Start the race
+        function startRace() {
+            raceState.status = 'racing';
+            raceState.startTime = new Date().getTime();
+            typingStats.startTime = null; // Will be set on first keystroke
+            
+            // Reset and animate the timer bar
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = 'var(--primary)';
+            timerBar.style.transition = 'width 60s linear';
+            timerPulse.style.display = 'none';
+            setTimeout(() => {
+                timerBar.style.width = '0%';
+            }, 10);
+            
+            // Enable the typing input
+            typingInput.disabled = false;
+            typingInput.placeholder = "Start typing the text above...";
+            typingInput.focus();
+            
+            // Start updating WPM and progress for all players
+            updateRaceProgress();
+            
+            // Simulate AI players typing
+            simulateAIPlayers();
+            
+            // Set timeout for race duration
+            setTimeout(() => {
+                if (raceState.status === 'racing') {
+                    endRace();
+                }
+            }, raceState.raceDuration * 1000);
+        }
+
+        // Handle typing input - UPDATED FOR ACCURATE WPM AND ACCURACY
+        function handleTyping(e) {
+            const inputText = e.target.value;
+            const textToType = raceState.text;
+            
+            // Initialize timing on first keystroke
+            if (inputText.length === 1 && !typingStats.startTime) {
+                typingStats.startTime = new Date().getTime();
+                typingStats.correctChars = 0;
+                typingStats.incorrectChars = 0;
+                typingStats.totalKeystrokes = 0;
+            }
+            
+            // Calculate correct and incorrect characters
+            let correctChars = 0;
+            let incorrectChars = 0;
+            
+            for (let i = 0; i < inputText.length; i++) {
+                if (inputText[i] === textToType[i]) {
+                    correctChars++;
+                } else {
+                    incorrectChars++;
+                }
+            }
+            
+            // Update typing stats
+            typingStats.correctChars = correctChars;
+            typingStats.incorrectChars = incorrectChars;
+            typingStats.totalKeystrokes = inputText.length;
+            
+            // Update the displayed text with highlighting
+            let displayHTML = '';
+            for (let i = 0; i < textToType.length; i++) {
+                let charClass = '';
+                
+                if (i < inputText.length) {
+                    if (inputText[i] === textToType[i]) {
+                        charClass = 'correct';
+                    } else {
+                        charClass = 'incorrect';
+                    }
+                }
+                
+                if (i === inputText.length) {
+                    charClass += ' current';
+                }
+                
+                displayHTML += `<span class="${charClass}">${textToType[i]}</span>`;
+            }
+            
+            textDisplay.innerHTML = displayHTML;
+            
+            // Calculate progress percentage
+            const progress = (correctChars / textToType.length) * 100;
+            currentPlayer.progress = Math.min(100, progress);
+            
+            // Calculate WPM (Words Per Minute) - IMPROVED CALCULATION
+            if (typingStats.startTime) {
+                const timeElapsed = (new Date().getTime() - typingStats.startTime) / 60000; // in minutes
+                if (timeElapsed > 0) {
+                    // Standard word is 5 characters, including spaces
+                    const wordsTyped = correctChars / 5;
+                    currentPlayer.wpm = Math.max(0, Math.round(wordsTyped / timeElapsed));
+                }
+            }
+            
+            // Calculate accuracy - IMPROVED CALCULATION
+            const totalTypedChars = correctChars + incorrectChars;
+            currentPlayer.accuracy = totalTypedChars > 0 ? 
+                Math.round((correctChars / totalTypedChars) * 100) : 
+                0;
+            
+            // Update player in race state
+            raceState.players[currentPlayer.id] = {...currentPlayer};
+            
+            // Check if player has finished
+            if (correctChars === textToType.length) {
+                finishRace();
+            }
+            
+            // Update the progress display
+            renderPlayerProgress();
+        }
+
+        // Update all players' progress during the race - UPDATED FOR CONSISTENT WPM
+        function updateRaceProgress() {
+            if (raceState.status !== 'racing') return;
+            
+            // Only update WPM if player is actively typing
+            if (!currentPlayer.finished && typingStats.startTime) {
+                const timeElapsed = (new Date().getTime() - typingStats.startTime) / 60000;
+                if (timeElapsed > 0) {
+                    const wordsTyped = typingStats.correctChars / 5;
+                    currentPlayer.wpm = Math.max(0, Math.round(wordsTyped / timeElapsed));
+                    raceState.players[currentPlayer.id].wpm = currentPlayer.wpm;
+                }
+            }
+            
+            renderPlayerProgress();
+            setTimeout(updateRaceProgress, 1000);
+        }
+
+        // Simulate AI players typing
+        function simulateAIPlayers() {
+            const aiPlayers = Object.keys(raceState.players).filter(id => id.startsWith('ai'));
+            
+            aiPlayers.forEach(aiId => {
+                const player = raceState.players[aiId];
+                const textLength = raceState.text.length;
+                
+                // Calculate target progress per second based on base WPM
+                const targetProgressPerSecond = (player.baseWPM * 5) / 60; // chars per second
+                
+                const interval = setInterval(() => {
+                    const currentPlayerData = raceState.players[aiId];
+                    
+                    if (currentPlayerData.finished || raceState.status !== 'racing') {
+                        clearInterval(interval);
+                        return;
+                    }
+                    
+                    // Increment progress with some randomness
+                    const progressIncrement = (targetProgressPerSecond * 100) / textLength;
+                    const randomFactor = 0.8 + Math.random() * 0.4; // 0.8-1.2
+                    currentPlayerData.progress = Math.min(100, currentPlayerData.progress + (progressIncrement * randomFactor));
+                    
+                    // Update WPM with some variation
+                    currentPlayerData.wpm = Math.round(player.baseWPM * (0.9 + Math.random() * 0.2)); // ±10% variation
+                    
+                    // Random chance to finish
+                    if (currentPlayerData.progress >= 100) {
+                        currentPlayerData.progress = 100;
+                        currentPlayerData.finished = true;
+                        clearInterval(interval);
+                        
+                        // Check if all players have finished
+                        checkRaceFinished();
+                    }
+                    
+                    // Update the display
+                    renderPlayerProgress();
+                }, 1000);
+            });
+        }
+
+        // Finish the race for the current player
+        function finishRace() {
+            currentPlayer.finished = true;
+            raceState.players[currentPlayer.id].finished = true;
+            typingInput.disabled = true;
+            typingStats.endTime = new Date().getTime();
+            
+            // Check if all players have finished
+            checkRaceFinished();
+        }
+
+        // Check if all players have finished the race
+        function checkRaceFinished() {
+            const allFinished = Object.values(raceState.players).every(player => player.finished);
+            
+            if (allFinished) {
+                endRace();
+            }
+        }
+
+        // End the race and show results
+        function endRace() {
+            raceState.status = 'finished';
+            raceState.endTime = new Date().getTime();
+            
+            // Stop the timer bar animation
+            timerBar.style.transition = 'none';
+            
+            // Hide the race container
+            raceContainer.style.display = 'none';
+            
+            // Show the results
+            raceResults.style.display = 'block';
+            
+            // Determine player positions
+            const playersArray = Object.values(raceState.players);
+            playersArray.sort((a, b) => {
+                // First sort by finished status
+                if (a.finished && !b.finished) return -1;
+                if (!a.finished && b.finished) return 1;
+                
+                // Then by WPM
+                if (a.wpm !== b.wpm) return b.wpm - a.wpm;
+                
+                // Then by accuracy
+                return b.accuracy - a.accuracy;
+            });
+            
+            // Assign positions
+            playersArray.forEach((player, index) => {
+                player.position = index + 1;
+                if (player.id === currentPlayer.id) {
+                    currentPlayer.position = index + 1;
+                }
+            });
+            
+            // Update leaderboard
+            updateLeaderboard(playersArray);
+            
+            // Check if current player won
+            if (currentPlayer.position === 1) {
+                // Player won
+                trophy.style.display = 'block';
+                resultMessage.textContent = 'CONGRATULATIONS! YOU WON!';
+                resultMessage.style.color = 'var(--success)';
+            } else {
+                // Player didn't win
+                trophy.style.display = 'none';
+                resultMessage.textContent = `You finished ${getOrdinalSuffix(currentPlayer.position)}`;
+                resultMessage.style.color = 'var(--dark)';
+                
+                // Show "TRY AGAIN" button if not in top 3
+                if (currentPlayer.position > 3) {
+                    tryAgainBtn.style.display = 'inline-block';
+                } else {
+                    tryAgainBtn.style.display = 'none';
+                }
+            }
+            
+            // Update player stats (no decimal points)
+            finalWpm.textContent = `${currentPlayer.wpm} WPM`;
+            finalAccuracy.textContent = `${currentPlayer.accuracy}%`;
+            finalPosition.textContent = `${currentPlayer.position}/${playersArray.length}`;
+            
+            // Show start race button again
+            startRaceBtn.style.display = 'inline-block';
+        }
+
+        // Update the leaderboard display
+        function updateLeaderboard(players) {
+            leaderboardBody.innerHTML = '';
+            
+            players.forEach((player, index) => {
+                const row = document.createElement('tr');
+                
+                if (player.id === currentPlayer.id) {
+                    row.style.fontWeight = 'bold';
+                    row.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
+                }
+                
+                row.innerHTML = `
+                    <td class="position-${index + 1}">${index + 1}</td>
+                    <td>${player.name} ${player.id === currentPlayer.id ? '(You)' : ''}</td>
+                    <td>${player.wpm}</td>
+                    <td>${player.accuracy}%</td>
+                `;
+                
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Reset the race to start again
+        function resetRace() {
+            // Hide results
+            raceResults.style.display = 'none';
+            
+            // Reset typing input
+            typingInput.value = '';
+            typingInput.disabled = true;
+            
+            // Show player setup
+            document.querySelector('.player-setup').style.display = 'block';
+            
+            // Reset game state
+            currentPlayer.progress = 0;
+            currentPlayer.wpm = 0;
+            currentPlayer.accuracy = 0;
+            currentPlayer.finished = false;
+            currentPlayer.position = 0;
+            
+            typingStats = {
+                correctChars: 0,
+                incorrectChars: 0,
+                totalKeystrokes: 0,
+                startTime: null,
+                endTime: null
+            };
+            
+            // Reset try again button visibility
+            tryAgainBtn.style.display = 'none';
+            
+            // Reset timer bar
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = 'var(--primary)';
+            timerPulse.style.display = 'block';
+        }
+
+        // Update the player count display
+        function updatePlayerCount() {
+            playerCountDisplay.textContent = Object.keys(raceState.players).length;
+        }
+
+        // Render all players' progress bars
+        function renderPlayerProgress() {
+            playersProgressContainer.innerHTML = '';
+            
+            // Sort players by progress (descending)
+            const sortedPlayers = Object.values(raceState.players).sort((a, b) => b.progress - a.progress);
+            
+            sortedPlayers.forEach(player => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-progress';
+                
+                // Highlight current player
+                const isCurrentPlayer = player.id === currentPlayer.id;
+                
+                playerElement.innerHTML = `
+                    <div class="player-name" style="${isCurrentPlayer ? 'color: var(--primary); font-weight: 600;' : ''}">
+                        ${player.name} ${isCurrentPlayer ? '(You)' : ''}
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" 
+                             style="width: ${player.progress}%;
+                                    ${isCurrentPlayer ? 'background-color: var(--primary);' : 'background-color: var(--gray);'}">
+                        </div>
+                    </div>
+                    <div class="player-wpm" style="${isCurrentPlayer ? 'color: var(--primary); font-weight: 600;' : ''}">
+                        ${player.wpm} WPM
+                    </div>
+                `;
+                
+                playersProgressContainer.appendChild(playerElement);
+            });
+        }
+
+        // Helper function to generate a random ID
+        function generateId() {
+            return 'player_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            
+            if (j === 1 && k !== 11) {
+                return num + "st";
+            }
+            if (j === 2 && k !== 12) {
+                return num + "nd";
+            }
+            if (j === 3 && k !== 13) {
+                return num + "rd";
+            }
+            return num + "th";
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>mult
